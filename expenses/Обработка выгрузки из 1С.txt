@@ -1,0 +1,154 @@
+let
+    // Загрузка данных из Excel файла
+    Источник = Excel.Workbook(
+        File.Contents("P:\!Временная\Бабенко\PL РЦ\Выгрузка 1С\Выгрузка.xlsx"), 
+        null, 
+        true
+    ),
+    
+    // Выбор нужного листа
+    TDSheet_Sheet = Источник{[Item="TDSheet",Kind="Sheet"]}[Data],
+    
+    // Преобразование типов данных для всех колонок
+    ИзмененныйТип = Table.TransformColumnTypes(
+        TDSheet_Sheet,
+        {
+            {"Column1", type text}, {"Column2", type text}, {"Column3", type any}, 
+            {"Column4", type text}, {"Column5", type any}, {"Column6", type text}, 
+            {"Column7", type text}, {"Column8", type text}, {"Column9", type text}, 
+            {"Column10", type any}, {"Column11", type text}, {"Column12", type text}, 
+            {"Column13", type text}, {"Column14", type text}, {"Column15", type text}, 
+            {"Column16", type text}, {"Column17", type text}, {"Column18", type text}, 
+            {"Column19", type any}, {"Column20", type text}, {"Column21", type text}, 
+            {"Column22", type text}, {"Column23", type text}, {"Column24", type text}, 
+            {"Column25", type text}, {"Column26", type text}, {"Column27", type text}, 
+            {"Column28", type text}, {"Column29", type text}, {"Column30", type text}, 
+            {"Column31", type text}, {"Column32", type text}, {"Column33", type text}, 
+            {"Column34", type text}, {"Column35", type text}, {"Column36", type any}, 
+            {"Column37", type text}, {"Column38", type text}, {"Column39", type text}, 
+            {"Column40", type text}, {"Column41", type text}, {"Column42", type text}, 
+            {"Column43", type text}, {"Column44", type any}, {"Column45", type any}, 
+            {"Column46", type any}, {"Column47", type any}
+        }
+    ),
+    
+    // Удаление первых трех строк (заголовков и служебной информации)
+    УдаленныеВерхниеСтроки = Table.Skip(ИзмененныйТип, 3),
+    
+    // Установка заголовков из первой строки
+    ПовышенныеЗаголовки = Table.PromoteHeaders(
+        УдаленныеВерхниеСтроки, 
+        [PromoteAllScalars=true]
+    ),
+    
+    // Преобразование типов данных для выбранных колонок
+    ИзмененныйТип1 = Table.TransformColumnTypes(
+        ПовышенныеЗаголовки,
+        {
+            {"Заявка на расход", type text}, 
+            {"Column2", type text}, 
+            {"Column3", type any}, 
+            {"Состояние", type text}, 
+            {"Column5", type any}, 
+            {"Номер", type text}, 
+            {"Дата", type datetime}, 
+            {"Организация", type text}, 
+            {"Подразделение", type text}, 
+            {"Сумма документа (с НДС)", type number}, 
+            {"Автор", type text}, 
+            {"Комментарий", type text}, 
+            {"Контрагент", type text}, 
+            {"Договор контрагента", type text}, 
+            {"Дата поставки", type date}, 
+            {"Дата оплаты", type date}, 
+            {"Валюта документа", type text}, 
+            {"Спецификация", type text}, 
+            {"Сумма взаиморасчётов (с НДС)", type number}, 
+            {"Валюта взаиморасчетов", type text}, 
+            {"Документ основание", type text}, 
+            {"Исходная заявка на расход", type text}, 
+            {"Период расхода", type date}, 
+            {"Дата изменения", type datetime}, 
+            {"Автор изменения", type text}, 
+            {"Статья бюджета", type text}, 
+            {"Аналитика1", type text}, 
+            {"Аналитика2", type text}, 
+            {"Аналитика3", type text}, 
+            {"Подразделение_1", type text}, 
+            {"Номенклатура", type text}, 
+            {"Модель", type text}, 
+            {"ЦФО бюджета", type text}, 
+            {"Инвестиционный план", type text}, 
+            {"Проект", type text}, 
+            {"Цена с НДС", type number}, 
+            {"Ставка НДС", type text}, 
+            {"ГУ", type text}, 
+            {"РБП", type text}, 
+            {"Дата начала списания", type text}, 
+            {"Дата окончания списания", type text}, 
+            {"ДП", type text}, 
+            {"ЗНО", type text}, 
+            {"Количество", Int64.Type}, 
+            {"Сумма с НДС", type number}, 
+            {"Сумма НДС", type number}, 
+            {"Сумма без НДС", type number}
+        }
+    ),
+    
+    // Выбор только нужных колонок
+    ВыбранныеКолонки = Table.SelectColumns(
+        ИзмененныйТип1,
+        {
+            "Номер", 
+            "Дата", 
+            "Подразделение", 
+            "Сумма документа (с НДС)", 
+            "Комментарий", 
+            "Период расхода", 
+            "Статья бюджета", 
+            "Модель", 
+            "Ставка НДС", 
+            "Сумма без НДС"
+        }
+    ),
+    
+    // Изменение порядка колонок (первый вариант)
+    ПереупорядоченныеКолонки1 = Table.ReorderColumns(
+        ВыбранныеКолонки,
+        {
+            "Номер", 
+            "Дата", 
+            "Подразделение", 
+            "Комментарий", 
+            "Период расхода", 
+            "Статья бюджета", 
+            "Модель", 
+            "Ставка НДС", 
+            "Сумма документа (с НДС)", 
+            "Сумма без НДС"
+        }
+    ),
+    
+    // Изменение порядка колонок (финальный вариант)
+    ПереупорядоченныеКолонки = Table.ReorderColumns(
+        ПереупорядоченныеКолонки1,
+        {
+            "Подразделение", 
+            "Номер", 
+            "Дата", 
+            "Статья бюджета", 
+            "Модель", 
+            "Комментарий", 
+            "Период расхода", 
+            "Ставка НДС", 
+            "Сумма без НДС"
+        }
+    ),
+    
+    // Фильтрация строк - удаление строк с пустыми статьями бюджета
+    ФильтрованныеСтроки = Table.SelectRows(
+        ПереупорядоченныеКолонки, 
+        each ([Статья бюджета] <> null)
+    )
+in
+    ФильтрованныеСтроки
