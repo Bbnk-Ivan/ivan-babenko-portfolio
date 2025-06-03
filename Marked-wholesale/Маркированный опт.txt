@@ -1,0 +1,42 @@
+Sub SaveDataToNewFile()
+Dim newFileName As String
+Dim savePath As String
+Dim newWorkbook As Workbook
+
+' Запросить у пользователя имя файла
+newFileName = InputBox("Введите имя нового файла (без расширения):", "Сохранение данных")
+
+' Если имя файла не введено, выйти из макроса
+If newFileName = "" Then
+    MsgBox "Имя файла не введено. Операция отменена.", vbExclamation
+    Exit Sub
+End If
+
+' Указать путь для сохранения (можно изменить на нужный)
+savePath = "P:\!Временная\Бабенко\Маркированный опт\Готовый\" & newFileName & ".xlsx"
+
+' Проверить, существует ли файл
+If Dir(savePath) <> "" Then
+    If MsgBox("Файл уже существует. Перезаписать?", vbYesNo + vbQuestion) = vbNo Then
+        Exit Sub
+    End If
+End If
+
+' Создать новый файл и скопировать данные
+On Error GoTo ErrorHandler
+Application.DisplayAlerts = False
+ThisWorkbook.Sheets(1).Copy
+Set newWorkbook = ActiveWorkbook
+
+' Сохранить новый файл
+newWorkbook.SaveAs Filename:=savePath, FileFormat:=xlOpenXMLWorkbook
+newWorkbook.Close SaveChanges:=True
+Application.DisplayAlerts = True
+
+MsgBox "Данные успешно сохранены в файл: " & savePath, vbInformation
+Exit Sub
+
+ErrorHandler:
+MsgBox "Произошла ошибка: " & Err.Description, vbCritical
+Application.DisplayAlerts = True
+End Sub
